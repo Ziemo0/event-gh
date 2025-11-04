@@ -1,8 +1,14 @@
 name: Events Demo 1
 on:
   pull_request:
-    types: [opened, edited] # definiujemy typ eventu
+    types: [opened, edited]
   workflow_dispatch:
+  push:
+    branches: # filtrowanie po branchach
+      - main # branch main
+      - 'dev-*' # branch zaczynający się od dev-*
+    paths-ignore: # ignorujemy jeśli pliki poniżej zostały zedytowane (z paths odwrotnie)
+      - '.github/workflows/*' 
 jobs:
   deploy:
     runs-on: ubuntu-latest
