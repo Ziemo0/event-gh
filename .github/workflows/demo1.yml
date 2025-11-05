@@ -16,6 +16,8 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    outputs: # pozwala definiować nasze outputy z tego joba
+      script-file: ${{ steps.publish.outputs.script-file }} # nazwa jaką chcemy, konteks steps żeby mieć dostęp do danych z kroków dalej .publish kontretny krok o id publish, outputs wszystkie outputy jakie są w tym kroku, script-file - nasza zapisana wartość key-value w GH_OUTPUTS
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -23,22 +25,25 @@ jobs:
         run: npm ci
       - name: Build code
         run: npm run build
-      - name: Update artifact # akcja do zapisywania artefaktów
+      - name: Publish JS filename # wyciągnięcie nazwy pliku dla kolejnego joba
+        id: publish # dowolny id - nazwa jaką chcemy
+        run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';' # wyciągnięcie nazwy komendą linuxową przypisanie wartości zmiennej do GH_OUTPUT
+      - name: Update artifact
         uses: actions/upload-artifact@v5
         with:
-          name: output-files # nasza dowolna nazwa
-          path: | # ścieżki które chcemy zapisać (w tym przypadku folder dist i plik package.json)
+          name: output-files 
+          path: | 
             dist
             package.json
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Get build artifacts # akcja do pobierania artefaktów
+      - name: Get build artifacts
         uses: actions/download-artifact@v6
         with:
-          name: output-files # wskazujemy plik wyprodukowany przez wcześniejszy job
-      - name: Output content
-        run: ls
+          name: output-files
+      - name: Output filename
+        run: echo "${{ needs.build.outputs.script-file }}" # wyprintowanie wartości - needs zawiera wszystkie outputy ze wszystkich jobów, outputs...
       - name: Deploy project
         run: echo "Deploying..."
