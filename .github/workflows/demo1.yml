@@ -34,5 +34,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Get build artifacts # akcja do pobierania artefaktów
+        uses: actions/download-artifact@v6
+        with:
+          name: output-files # wskazujemy plik wyprodukowany przez wcześniejszy job
+      - name: Output content
+        run: ls
       - name: Deploy project
         run: echo "Deploying..."
