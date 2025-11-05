@@ -1,4 +1,4 @@
-name: Events Demo 1
+name: Artifact demo
 on:
   push:
     branches: # filtrowanie po branchach
@@ -14,6 +14,7 @@ jobs:
       - name: Test code
         run: npm run test
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Get code
@@ -22,6 +23,13 @@ jobs:
         run: npm ci
       - name: Build code
         run: npm run build
+      - name: Update artifact # akcja do zapisywania artefaktów
+        uses: actions/upload-artifact@v5
+        with:
+          name: output-files # nasza dowolna nazwa
+          path: | # ścieżki które chcemy zapisać (w tym przypadku folder dist i plik package.json)
+            dist
+            package.json
   deploy:
     needs: build
     runs-on: ubuntu-latest
