@@ -9,6 +9,13 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
+      - name: Cache dependencies # akcja do cachowania stepu aby ten mógł być użyty gdzieś ponownie
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm # npm cache
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }} # wartość do wydobycia cacha .npm trzymanego w chmurze GH, nazwa powinna być dynamiczna - hashFiles -> daje hasha ze ścieżki
+      # w momencie zmiany package-lock.json zmieni się cache dzięki czemu GH wie żeby usunąć stary chache i dependencje muszą być na nowo wyprodukowane
+      # cache po wykonaniu joba zaktualizuje npm cache'a automatycznie
       - name: Install dependencies
         run: npm ci
       - name: Test code
@@ -16,18 +23,23 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    outputs: # pozwala definiować nasze outputy z tego joba
-      script-file: ${{ steps.publish.outputs.script-file }} # nazwa jaką chcemy, konteks steps żeby mieć dostęp do danych z kroków dalej .publish kontretny krok o id publish, outputs wszystkie outputy jakie są w tym kroku, script-file - nasza zapisana wartość key-value w GH_OUTPUTS
+    outputs: 
+      script-file: ${{ steps.publish.outputs.script-file }} 
     steps:
       - name: Get code
         uses: actions/checkout@v3
+      - name: Cache dependencies  # kolejne odniesienie do cacha - chace jest globalny nie przypisany do konktetnego joba
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm ci
       - name: Build code
         run: npm run build
-      - name: Publish JS filename # wyciągnięcie nazwy pliku dla kolejnego joba
-        id: publish # dowolny id - nazwa jaką chcemy
-        run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';' # wyciągnięcie nazwy komendą linuxową przypisanie wartości zmiennej do GH_OUTPUT
+      - name: Publish JS filename 
+        id: publish 
+        run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';' 
       - name: Update artifact
         uses: actions/upload-artifact@v5
         with:
@@ -44,6 +56,6 @@ jobs:
         with:
           name: output-files
       - name: Output filename
-        run: echo "${{ needs.build.outputs.script-file }}" # wyprintowanie wartości - needs zawiera wszystkie outputy ze wszystkich jobów, outputs...
+        run: echo "${{ needs.build.outputs.script-file }}" 
       - name: Deploy project
         run: echo "Deploying..."
