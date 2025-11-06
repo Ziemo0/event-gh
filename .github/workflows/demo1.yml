@@ -9,15 +9,8 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
-      - name: Cache dependencies # akcja do cachowania stepu aby ten mógł być użyty gdzieś ponownie
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm # npm cache
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }} # wartość do wydobycia cacha .npm trzymanego w chmurze GH, nazwa powinna być dynamiczna - hashFiles -> daje hasha ze ścieżki
-      # w momencie zmiany package-lock.json zmieni się cache dzięki czemu GH wie żeby usunąć stary chache i dependencje muszą być na nowo wyprodukowane
-      # cache po wykonaniu joba zaktualizuje npm cache'a automatycznie
-      - name: Install dependencies
-        run: npm ci
+      - name: Load and cache dependiecnies # definujemy jak zwykły step
+        uses: ./.github/actions/cached-deps # odwołanie do lokalniej akcji - gdyby to była moja akcja z innego repo wtedy Ziemo0/my-action
       - name: Test code
         run: npm run test
   build:
@@ -28,13 +21,7 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
-      - name: Cache dependencies  # kolejne odniesienie do cacha - chace jest globalny nie przypisany do konktetnego joba
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
-      - name: Install dependencies
-        run: npm ci
+      
       - name: Build code
         run: npm run build
       - name: Publish JS filename 

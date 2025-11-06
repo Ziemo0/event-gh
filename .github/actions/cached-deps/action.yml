@@ -1,0 +1,14 @@
+name: Get and cache dependecies
+# nie definiujemy on: w custom action
+description: Get dependencies and cache them # opis actiona
+runs: 
+  using: 'composite' # typ wymagany do custom actiona - mówi GH że jest kompozytowy
+  steps: # kroki praktycznie jak w zwyłym workflow
+  - name: Cache dependencies  # kolejne odniesienie do cacha - chace jest globalny nie przypisany do konktetnego joba
+    uses: actions/cache@v4
+    with:
+        path: ~/.npm
+        key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+  - name: Install dependencies
+    run: npm ci
+    shell: bash # kiedy mamy run musimy zdefiować jaki shell ma być używany
