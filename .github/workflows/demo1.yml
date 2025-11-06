@@ -11,6 +11,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Load and cache dependiecnies # definujemy jak zwykły step
         uses: ./.github/actions/cached-deps # odwołanie do lokalniej akcji - gdyby to była moja akcja z innego repo wtedy Ziemo0/my-action
+        with:
+          caching: 'false'
       - name: Test code
         run: npm run test
   build:
